@@ -1,4 +1,3 @@
-
 -- ============================================
 -- MISSWARE P100 V5 - COMPLETE EDITION
 -- Resolver + Killsay + Clantag
@@ -69,10 +68,10 @@ local menu = {}
 -- RESOLVER SECTION
 menu.resolver_enable = ui_new_checkbox("LUA", "B", "═══ RESOLVER ═══")
 menu.resolver_mode = ui_new_combobox("LUA", "B", "Resolver Mode", {
-    "Adaptive",      -- Smart learning
-    "Bruteforce",    -- Cycle angles
-    "Prediction",    -- Velocity-based
-    "Smart Hybrid"   -- Best of all
+    "Adaptive",
+    "Bruteforce",
+    "Prediction",
+    "Smart Hybrid"
 })
 menu.anti_freestand = ui_new_checkbox("LUA", "B", "Anti-Freestand Override")
 menu.shot_correction = ui_new_checkbox("LUA", "B", "Miss-Based Correction")
@@ -117,15 +116,6 @@ menu.clantag_max_length = ui_new_slider("LUA", "B", "Max Length", 5, 20, 15, tru
 
 -- DIAGNOSTICS
 menu.show_diagnostics = ui_new_checkbox("LUA", "B", "\n═══ DIAGNOSTICS ═══")
-
--- Set default values
-ui_set(menu.resolver_enable, true)
-ui_set(menu.resolver_mode, 3) -- Smart Hybrid
-ui_set(menu.anti_freestand, true)
-ui_set(menu.shot_correction, true)
-ui_set(menu.on_kill, true)
-ui_set(menu.on_headshot, true)
-ui_set(menu.killsay_delay, 300)
 
 -- ============================================
 -- CHEAT REFERENCES
