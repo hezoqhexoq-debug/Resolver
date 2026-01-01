@@ -16,6 +16,12 @@ local script = {
 -- ============================================
 local ui_get, ui_set = ui.get, ui.set
 local ui_set_visible = ui.set_visible
+local ui_new_checkbox = ui.new_checkbox
+local ui_new_combobox = ui.new_combobox
+local ui_new_slider = ui.new_slider
+local ui_new_textbox = ui.new_textbox
+local ui_set_callback = ui.set_callback
+local ui_reference = ui.reference
 local entity_get_local_player = entity.get_local_player
 local entity_get_players = entity.get_players
 local entity_is_alive = entity.is_alive
@@ -29,7 +35,10 @@ local client_exec = client.exec
 local client_delay_call = client.delay_call
 local client_userid_to_entindex = client.userid_to_entindex
 local client_set_clan_tag = client.set_clan_tag
+local client_color_log = client.color_log
 local renderer_text = renderer.text
+local plist_set = plist.set
+local plist_get = plist.get
 local math_random = math.random
 local math_floor = math.floor
 local math_min = math.min
@@ -40,7 +49,9 @@ local math_deg = math.deg
 local math_atan2 = math.atan2
 local table_insert = table.insert
 local table_concat = table.concat
+local table_remove = table.remove
 local string_format = string.format
+local string_rep = string.rep
 
 -- ============================================
 -- UTILITY FUNCTIONS
@@ -53,80 +64,80 @@ end
 -- ============================================
 -- UI ELEMENTS
 -- ============================================
-local ui = {}
+local menu = {}
 
 -- RESOLVER SECTION
-ui.resolver_enable = ui.new_checkbox("LUA", "B", "═══ RESOLVER ═══")
-ui.resolver_mode = ui.new_combobox("LUA", "B", "Resolver Mode", {
+menu.resolver_enable = ui_new_checkbox("LUA", "B", "═══ RESOLVER ═══")
+menu.resolver_mode = ui_new_combobox("LUA", "B", "Resolver Mode", {
     "Adaptive",      -- Smart learning
     "Bruteforce",    -- Cycle angles
     "Prediction",    -- Velocity-based
     "Smart Hybrid"   -- Best of all
 })
-ui.anti_freestand = ui.new_checkbox("LUA", "B", "Anti-Freestand Override")
-ui.shot_correction = ui.new_checkbox("LUA", "B", "Miss-Based Correction")
-ui.aggression = ui.new_slider("LUA", "B", "Resolver Aggression", 1, 100, 50, true, "%")
-ui.resolver_debug = ui.new_checkbox("LUA", "B", "Resolver Debug Info")
+menu.anti_freestand = ui_new_checkbox("LUA", "B", "Anti-Freestand Override")
+menu.shot_correction = ui_new_checkbox("LUA", "B", "Miss-Based Correction")
+menu.aggression = ui_new_slider("LUA", "B", "Resolver Aggression", 1, 100, 50, true, "%")
+menu.resolver_debug = ui_new_checkbox("LUA", "B", "Resolver Debug Info")
 
 -- KILLSAY SECTION
-ui.killsay_enable = ui.new_checkbox("LUA", "B", "\n═══ KILLSAY ═══")
-ui.killsay_mode = ui.new_combobox("LUA", "B", "Chat Mode", {"Team", "All"})
-ui.killsay_style = ui.new_combobox("LUA", "B", "Style", {
+menu.killsay_enable = ui_new_checkbox("LUA", "B", "\n═══ KILLSAY ═══")
+menu.killsay_mode = ui_new_combobox("LUA", "B", "Chat Mode", {"Team", "All"})
+menu.killsay_style = ui_new_combobox("LUA", "B", "Style", {
     "Toxic", "Troll", "Meme", "Professional", "Custom Mix"
 })
-ui.killsay_delay = ui.new_slider("LUA", "B", "Delay (ms)", 0, 2000, 300, true, "ms")
-ui.on_kill = ui.new_checkbox("LUA", "B", "On Kill")
-ui.on_headshot = ui.new_checkbox("LUA", "B", "On Headshot")
-ui.on_knife = ui.new_checkbox("LUA", "B", "On Knife")
-ui.on_multi = ui.new_checkbox("LUA", "B", "Multi-kill Messages")
-ui.multi_threshold = ui.new_slider("LUA", "B", "Multi-kill Count", 2, 5, 2, true, " kills")
-ui.death_responses = ui.new_checkbox("LUA", "B", "Death Responses")
-ui.death_style = ui.new_combobox("LUA", "B", "Death Style", {
+menu.killsay_delay = ui_new_slider("LUA", "B", "Delay (ms)", 0, 2000, 300, true, "ms")
+menu.on_kill = ui_new_checkbox("LUA", "B", "On Kill")
+menu.on_headshot = ui_new_checkbox("LUA", "B", "On Headshot")
+menu.on_knife = ui_new_checkbox("LUA", "B", "On Knife")
+menu.on_multi = ui_new_checkbox("LUA", "B", "Multi-kill Messages")
+menu.multi_threshold = ui_new_slider("LUA", "B", "Multi-kill Count", 2, 5, 2, true, " kills")
+menu.death_responses = ui_new_checkbox("LUA", "B", "Death Responses")
+menu.death_style = ui_new_combobox("LUA", "B", "Death Style", {
     "Excuses", "Salty", "Funny", "Blame", "Toxic"
 })
-ui.domination = ui.new_checkbox("LUA", "B", "Domination Messages")
-ui.domination_count = ui.new_slider("LUA", "B", "Domination Threshold", 2, 10, 3, true, " kills")
+menu.domination = ui_new_checkbox("LUA", "B", "Domination Messages")
+menu.domination_count = ui_new_slider("LUA", "B", "Domination Threshold", 2, 10, 3, true, " kills")
 
 -- CLANTAG SECTION
-ui.clantag_enable = ui.new_checkbox("LUA", "B", "\n═══ CLANTAG ═══")
-ui.clantag_preset = ui.new_combobox("LUA", "B", "Preset", {
+menu.clantag_enable = ui_new_checkbox("LUA", "B", "\n═══ CLANTAG ═══")
+menu.clantag_preset = ui_new_combobox("LUA", "B", "Preset", {
     "Custom", "MISSWARE", "P100", "GODLIKE", "EZ", "1TAP", "RESOLVER", "GAMING", "PRO", "HVHGOD"
 })
-ui.clantag_custom_text = ui.new_textbox("LUA", "B", "Custom Text")
-ui.clantag_animation = ui.new_combobox("LUA", "B", "Animation", {
+menu.clantag_custom_text = ui_new_textbox("LUA", "B", "Custom Text")
+menu.clantag_animation = ui_new_combobox("LUA", "B", "Animation", {
     "Scroll", "Fade", "Blink", "Wave", "Typewriter", "Reverse", "Ping-Pong", "Rainbow", "Glitch", "Bounce"
 })
-ui.clantag_speed = ui.new_slider("LUA", "B", "Animation Speed", 1, 50, 10, true, "x")
-ui.clantag_separator = ui.new_combobox("LUA", "B", "Separator", {
+menu.clantag_speed = ui_new_slider("LUA", "B", "Animation Speed", 1, 50, 10, true, "x")
+menu.clantag_separator = ui_new_combobox("LUA", "B", "Separator", {
     "None", "[ ]", "{ }", "( )", "| |", "< >", "» «", "★ ★", "• •", "~ ~"
 })
-ui.clantag_prefix = ui.new_textbox("LUA", "B", "Prefix")
-ui.clantag_suffix = ui.new_textbox("LUA", "B", "Suffix")
-ui.clantag_max_length = ui.new_slider("LUA", "B", "Max Length", 5, 20, 15, true, " chars")
+menu.clantag_prefix = ui_new_textbox("LUA", "B", "Prefix")
+menu.clantag_suffix = ui_new_textbox("LUA", "B", "Suffix")
+menu.clantag_max_length = ui_new_slider("LUA", "B", "Max Length", 5, 20, 15, true, " chars")
 
 -- DIAGNOSTICS
-ui.show_diagnostics = ui.new_checkbox("LUA", "B", "\n═══ DIAGNOSTICS ═══")
+menu.show_diagnostics = ui_new_checkbox("LUA", "B", "\n═══ DIAGNOSTICS ═══")
 
 -- Set default values
-ui.set(ui.resolver_enable, true)
-ui.set(ui.resolver_mode, 3) -- Smart Hybrid
-ui.set(ui.anti_freestand, true)
-ui.set(ui.shot_correction, true)
-ui.set(ui.on_kill, true)
-ui.set(ui.on_headshot, true)
-ui.set(ui.killsay_delay, 300)
+ui_set(menu.resolver_enable, true)
+ui_set(menu.resolver_mode, 3) -- Smart Hybrid
+ui_set(menu.anti_freestand, true)
+ui_set(menu.shot_correction, true)
+ui_set(menu.on_kill, true)
+ui_set(menu.on_headshot, true)
+ui_set(menu.killsay_delay, 300)
 
 -- ============================================
 -- CHEAT REFERENCES
 -- ============================================
 local ref = {
-    pitch = ui.reference("AA", "Anti-aimbot angles", "Pitch"),
-    yaw_base = ui.reference("AA", "Anti-aimbot angles", "Yaw base"),
-    yaw = ui.reference("AA", "Anti-aimbot angles", "Yaw"),
-    jitter = ui.reference("AA", "Anti-aimbot angles", "Yaw jitter"),
-    body_yaw = ui.reference("AA", "Anti-aimbot angles", "Body yaw"),
-    freestand = {ui.reference("AA", "Anti-aimbot angles", "Freestanding")},
-    edge_yaw = ui.reference("AA", "Anti-aimbot angles", "Edge yaw"),
+    pitch = ui_reference("AA", "Anti-aimbot angles", "Pitch"),
+    yaw_base = ui_reference("AA", "Anti-aimbot angles", "Yaw base"),
+    yaw = ui_reference("AA", "Anti-aimbot angles", "Yaw"),
+    jitter = ui_reference("AA", "Anti-aimbot angles", "Yaw jitter"),
+    body_yaw = ui_reference("AA", "Anti-aimbot angles", "Body yaw"),
+    freestand = {ui_reference("AA", "Anti-aimbot angles", "Freestanding")},
+    edge_yaw = ui_reference("AA", "Anti-aimbot angles", "Edge yaw"),
 }
 
 -- ============================================
@@ -198,7 +209,7 @@ local function get_adaptive_angle(player, data)
 end
 
 local function get_hybrid_angle(player, data)
-    local aggression = ui_get(ui.aggression) / 100
+    local aggression = ui_get(menu.aggression) / 100
     
     if data.shots_fired > 3 then
         if data.shots_hit / data.shots_fired > 0.3 then
@@ -212,13 +223,13 @@ local function get_hybrid_angle(player, data)
 end
 
 local function resolve_player(player)
-    if not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_enable) then return end
     
     init_player_data(player)
     local data = resolver_data[player]
     data.last_update = globals_curtime()
     
-    local mode = ui_get(ui.resolver_mode)
+    local mode = ui_get(menu.resolver_mode)
     local resolver_angle = 0
     
     if mode == 0 then
@@ -231,7 +242,7 @@ local function resolve_player(player)
         resolver_angle = get_hybrid_angle(player, data)
     end
     
-    if ui_get(ui.anti_freestand) then
+    if ui_get(menu.anti_freestand) then
         local freestand_active = ref.freestand[1] and ui_get(ref.freestand[1]) and ui_get(ref.freestand[2])
         if freestand_active then
             resolver_angle = resolver_angle * -1
@@ -239,8 +250,8 @@ local function resolve_player(player)
     end
     
     data.last_resolve_angle = resolver_angle
-    plist.set(player, "Override resolver", 1)
-    plist.set(player, "Override resolver value", resolver_angle)
+    plist_set(player, "Override resolver", 1)
+    plist_set(player, "Override resolver value", resolver_angle)
 end
 
 -- ============================================
@@ -310,7 +321,7 @@ local diagnostics = {
 }
 
 local function send_message(txt, dly)
-    local mode = safe_get_combobox(ui_get(ui.killsay_mode))
+    local mode = safe_get_combobox(ui_get(menu.killsay_mode))
     diagnostics.killsay_sent = diagnostics.killsay_sent + 1
     local cmd = mode == 0 and "say_team " or "say "
     if dly > 0 then
@@ -367,13 +378,13 @@ local ct_data = {
 local ct_active = false
 
 local function get_clantag_text()
-    local preset_idx = safe_get_combobox(ui_get(ui.clantag_preset))
+    local preset_idx = safe_get_combobox(ui_get(menu.clantag_preset))
     local preset_names = {"Custom", "MISSWARE", "P100", "GODLIKE", "EZ", "1TAP", "RESOLVER", "GAMING", "PRO", "HVHGOD"}
     local preset_name = preset_names[preset_idx + 1] or "Custom"
     
     local text = ""
     if preset_name == "Custom" then
-        text = ui_get(ui.clantag_custom_text) or "MISSWARE"
+        text = ui_get(menu.clantag_custom_text) or "MISSWARE"
         if text == "" then text = "MISSWARE" end
     else
         text = clantag_presets[preset_name] or "MISSWARE"
@@ -382,7 +393,7 @@ local function get_clantag_text()
 end
 
 local function apply_separator(text)
-    local sep_idx = safe_get_combobox(ui_get(ui.clantag_separator))
+    local sep_idx = safe_get_combobox(ui_get(menu.clantag_separator))
     local sep_names = {"None", "[ ]", "{ }", "( )", "| |", "< >", "» «", "★ ★", "• •", "~ ~"}
     local sep_name = sep_names[sep_idx + 1] or "None"
     local sep = separators[sep_name] or {"", ""}
@@ -395,8 +406,8 @@ local function apply_separator(text)
 end
 
 local function apply_prefix_suffix(text)
-    local prefix = ui_get(ui.clantag_prefix) or ""
-    local suffix = ui_get(ui.clantag_suffix) or ""
+    local prefix = ui_get(menu.clantag_prefix) or ""
+    local suffix = ui_get(menu.clantag_suffix) or ""
     
     if prefix ~= "" then text = prefix .. " " .. text end
     if suffix ~= "" then text = text .. " " .. suffix end
@@ -411,8 +422,8 @@ local function truncate_text(text, max_len)
 end
 
 local function animate_scroll(text)
-    local max_len = ui_get(ui.clantag_max_length)
-    local padding = string.rep(" ", math_floor(max_len / 2))
+    local max_len = ui_get(menu.clantag_max_length)
+    local padding = string_rep(" ", math_floor(max_len / 2))
     local padded = padding .. text .. padding
     local pos = ct_data.step % #padded
     local result = padded:sub(pos + 1, pos + max_len)
@@ -477,8 +488,8 @@ local function animate_reverse(text)
 end
 
 local function animate_pingpong(text)
-    local max_len = ui_get(ui.clantag_max_length)
-    local padding = string.rep(" ", max_len)
+    local max_len = ui_get(menu.clantag_max_length)
+    local padding = string_rep(" ", max_len)
     local full = padding .. text .. padding
     local max_pos = #full - max_len
     local cycle = max_pos * 2
@@ -552,7 +563,7 @@ end
 
 -- Resolver events
 client_set_event_callback("aim_fire", function(e)
-    if not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_enable) then return end
     
     local player = e.target
     init_player_data(player)
@@ -560,7 +571,7 @@ client_set_event_callback("aim_fire", function(e)
 end)
 
 client_set_event_callback("aim_hit", function(e)
-    if not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_enable) then return end
     
     local player = e.target
     init_player_data(player)
@@ -569,21 +580,21 @@ client_set_event_callback("aim_hit", function(e)
     data.shots_hit = data.shots_hit + 1
     diagnostics.resolver_hits = diagnostics.resolver_hits + 1
     
-    local current_override = plist.get(player, "Override resolver value")
+    local current_override = plist_get(player, "Override resolver value")
     table_insert(data.hit_angles, current_override)
     
     if #data.hit_angles > 5 then
-        table.remove(data.hit_angles, 1)
+        table_remove(data.hit_angles, 1)
     end
     
-    if ui_get(ui.resolver_debug) then
-        client.color_log(150, 255, 150, string_format("[HIT] %s at %d°", 
+    if ui_get(menu.resolver_debug) then
+        client_color_log(150, 255, 150, string_format("[HIT] %s at %d°", 
             entity_get_player_name(player), current_override))
     end
 end)
 
 client_set_event_callback("aim_miss", function(e)
-    if not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_enable) then return end
     
     local player = e.target
     init_player_data(player)
@@ -593,36 +604,36 @@ client_set_event_callback("aim_miss", function(e)
     data.last_miss_tick = globals_tickcount()
     diagnostics.resolver_misses = diagnostics.resolver_misses + 1
     
-    local current_override = plist.get(player, "Override resolver value")
+    local current_override = plist_get(player, "Override resolver value")
     table_insert(data.miss_angles, current_override)
     
     if #data.miss_angles > 5 then
-        table.remove(data.miss_angles, 1)
+        table_remove(data.miss_angles, 1)
     end
     
     data.brute_phase = (data.brute_phase + 1) % #data.brute_angles
     
-    if ui_get(ui.shot_correction) then
+    if ui_get(menu.shot_correction) then
         resolve_player(player)
     end
     
-    if ui_get(ui.resolver_debug) then
-        client.color_log(255, 150, 150, string_format("[MISS] %s | Reason: %s | Phase: %d", 
+    if ui_get(menu.resolver_debug) then
+        client_color_log(255, 150, 150, string_format("[MISS] %s | Reason: %s | Phase: %d", 
             entity_get_player_name(player), e.reason, data.brute_phase))
     end
 end)
 
 -- Killsay events
 client_set_event_callback("player_death", function(e)
-    if not ui_get(ui.killsay_enable) then return end
+    if not ui_get(menu.killsay_enable) then return end
     local me = entity_get_local_player()
     if not me then return end
     local atk = client_userid_to_entindex(e.attacker)
     local vic = client_userid_to_entindex(e.userid)
     
     if atk == me and vic ~= me then
-        local dly = ui_get(ui.killsay_delay)
-        local sty = safe_get_combobox(ui_get(ui.killsay_style))
+        local dly = ui_get(menu.killsay_delay)
+        local sty = safe_get_combobox(ui_get(menu.killsay_style))
         local style_names = {"toxic", "troll", "meme", "professional", "custom_mix"}
         local style_name = style_names[sty + 1] or "toxic"
         
@@ -645,30 +656,30 @@ client_set_event_callback("player_death", function(e)
         local msg = nil
         local wpn = e.weapon
         
-        if ui_get(ui.on_multi) and kill_tracker.kill_count >= ui_get(ui.multi_threshold) then
+        if ui_get(menu.on_multi) and kill_tracker.kill_count >= ui_get(menu.multi_threshold) then
             local pool = get_message_pool(style_name, "multi")
             msg = pool[math_random(1, #pool)]
-        elseif ui_get(ui.domination) and kill_tracker.per_player[vic] >= ui_get(ui.domination_count) then
+        elseif ui_get(menu.domination) and kill_tracker.per_player[vic] >= ui_get(menu.domination_count) then
             local pool = get_message_pool(style_name, "domination")
             msg = pool[math_random(1, #pool)]
-        elseif wpn and (wpn:find("knife") or wpn:find("bayonet")) and ui_get(ui.on_knife) then
+        elseif wpn and (wpn:find("knife") or wpn:find("bayonet")) and ui_get(menu.on_knife) then
             local pool = get_message_pool(style_name, "knife")
             msg = pool[math_random(1, #pool)]
-        elseif e.headshot and ui_get(ui.on_headshot) then
+        elseif e.headshot and ui_get(menu.on_headshot) then
             local pool = get_message_pool(style_name, "headshot")
             msg = pool[math_random(1, #pool)]
-        elseif ui_get(ui.on_kill) then
+        elseif ui_get(menu.on_kill) then
             local pool = get_message_pool(style_name, "normal")
             msg = pool[math_random(1, #pool)]
         end
         
         if msg then send_message(msg, dly) end
         
-    elseif vic == me and ui_get(ui.death_responses) then
+    elseif vic == me and ui_get(menu.death_responses) then
         diagnostics.deaths = diagnostics.deaths + 1
         kill_tracker.streak = 0
-        local dly = ui_get(ui.killsay_delay)
-        local ds = safe_get_combobox(ui_get(ui.death_style))
+        local dly = ui_get(menu.killsay_delay)
+        local ds = safe_get_combobox(ui_get(menu.death_style))
         local death_style_names = {"excuses", "salty", "funny", "blame", "toxic"}
         local death_style = death_style_names[ds + 1] or "excuses"
         local pool = death_msgs[death_style]
@@ -681,7 +692,7 @@ end)
 
 -- Resolver main loop
 client_set_event_callback("setup_command", function(cmd)
-    if not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_enable) then return end
     
     local local_player = entity_get_local_player()
     if not local_player or not entity_is_alive(local_player) then return end
@@ -702,7 +713,7 @@ end)
 
 -- Clantag animation
 client_set_event_callback("run_command", function()
-    local en = ui_get(ui.clantag_enable)
+    local en = ui_get(menu.clantag_enable)
     if not en then
         if ct_active then
             client_set_clan_tag("")
@@ -712,12 +723,12 @@ client_set_event_callback("run_command", function()
     end
     ct_active = true
     local t = globals_realtime()
-    local spd = ui_get(ui.clantag_speed)
+    local spd = ui_get(menu.clantag_speed)
     if t - ct_data.last_update < (0.3 / spd) then return end
     ct_data.last_update = t
     
     local text = get_clantag_text()
-    local anim_idx = safe_get_combobox(ui_get(ui.clantag_animation))
+    local anim_idx = safe_get_combobox(ui_get(menu.clantag_animation))
     local animated = ""
     
     if anim_idx == 0 then
@@ -749,7 +760,7 @@ client_set_event_callback("run_command", function()
     
     animated = apply_separator(animated)
     animated = apply_prefix_suffix(animated)
-    local max_len = ui_get(ui.clantag_max_length)
+    local max_len = ui_get(menu.clantag_max_length)
     animated = truncate_text(animated, max_len)
     client_set_clan_tag(animated)
     ct_data.last_text = animated
@@ -768,7 +779,7 @@ end)
 -- ============================================
 
 client_set_event_callback("paint", function()
-    if ui_get(ui.show_diagnostics) then
+    if ui_get(menu.show_diagnostics) then
         local y = 100
         local uptime = globals_realtime() - diagnostics.start_time
         
@@ -792,7 +803,7 @@ client_set_event_callback("paint", function()
         renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Deaths: " .. diagnostics.deaths)
     end
     
-    if not ui_get(ui.resolver_debug) or not ui_get(ui.resolver_enable) then return end
+    if not ui_get(menu.resolver_debug) or not ui_get(menu.resolver_enable) then return end
     
     local me = entity_get_local_player()
     if not me or not entity_is_alive(me) then return end
@@ -801,7 +812,7 @@ client_set_event_callback("paint", function()
     renderer_text(10, y, 100, 255, 255, 255, "", 0, "═══ RESOLVER DEBUG ═══") y = y + 20
     
     local mode_names = {"ADAPTIVE", "BRUTEFORCE", "PREDICTION", "SMART HYBRID"}
-    local mode_idx = ui_get(ui.resolver_mode) + 1
+    local mode_idx = ui_get(menu.resolver_mode) + 1
     if mode_idx < 1 or mode_idx > #mode_names then mode_idx = 1 end
     renderer_text(10, y, 100, 255, 255, 255, "", 0, "Mode: " .. mode_names[mode_idx]) y = y + 15
     
@@ -835,51 +846,51 @@ end)
 -- ============================================
 
 local function update_visibility()
-    local re = ui_get(ui.resolver_enable)
-    local ke = ui_get(ui.killsay_enable)
-    local ce = ui_get(ui.clantag_enable)
-    local preset_idx = safe_get_combobox(ui_get(ui.clantag_preset))
+    local re = ui_get(menu.resolver_enable)
+    local ke = ui_get(menu.killsay_enable)
+    local ce = ui_get(menu.clantag_enable)
+    local preset_idx = safe_get_combobox(ui_get(menu.clantag_preset))
     
     -- Resolver visibility
-    ui_set_visible(ui.resolver_mode, re)
-    ui_set_visible(ui.anti_freestand, re)
-    ui_set_visible(ui.shot_correction, re)
-    ui_set_visible(ui.aggression, re)
-    ui_set_visible(ui.resolver_debug, re)
+    ui_set_visible(menu.resolver_mode, re)
+    ui_set_visible(menu.anti_freestand, re)
+    ui_set_visible(menu.shot_correction, re)
+    ui_set_visible(menu.aggression, re)
+    ui_set_visible(menu.resolver_debug, re)
     
     -- Killsay visibility
-    ui_set_visible(ui.killsay_mode, ke)
-    ui_set_visible(ui.killsay_style, ke)
-    ui_set_visible(ui.killsay_delay, ke)
-    ui_set_visible(ui.on_kill, ke)
-    ui_set_visible(ui.on_headshot, ke)
-    ui_set_visible(ui.on_knife, ke)
-    ui_set_visible(ui.on_multi, ke)
-    ui_set_visible(ui.multi_threshold, ke and ui_get(ui.on_multi))
-    ui_set_visible(ui.death_responses, ke)
-    ui_set_visible(ui.death_style, ke and ui_get(ui.death_responses))
-    ui_set_visible(ui.domination, ke)
-    ui_set_visible(ui.domination_count, ke and ui_get(ui.domination))
+    ui_set_visible(menu.killsay_mode, ke)
+    ui_set_visible(menu.killsay_style, ke)
+    ui_set_visible(menu.killsay_delay, ke)
+    ui_set_visible(menu.on_kill, ke)
+    ui_set_visible(menu.on_headshot, ke)
+    ui_set_visible(menu.on_knife, ke)
+    ui_set_visible(menu.on_multi, ke)
+    ui_set_visible(menu.multi_threshold, ke and ui_get(menu.on_multi))
+    ui_set_visible(menu.death_responses, ke)
+    ui_set_visible(menu.death_style, ke and ui_get(menu.death_responses))
+    ui_set_visible(menu.domination, ke)
+    ui_set_visible(menu.domination_count, ke and ui_get(menu.domination))
     
     -- Clantag visibility
-    ui_set_visible(ui.clantag_preset, ce)
-    ui_set_visible(ui.clantag_custom_text, ce and preset_idx == 0)
-    ui_set_visible(ui.clantag_animation, ce)
-    ui_set_visible(ui.clantag_speed, ce)
-    ui_set_visible(ui.clantag_separator, ce)
-    ui_set_visible(ui.clantag_prefix, ce)
-    ui_set_visible(ui.clantag_suffix, ce)
-    ui_set_visible(ui.clantag_max_length, ce)
+    ui_set_visible(menu.clantag_preset, ce)
+    ui_set_visible(menu.clantag_custom_text, ce and preset_idx == 0)
+    ui_set_visible(menu.clantag_animation, ce)
+    ui_set_visible(menu.clantag_speed, ce)
+    ui_set_visible(menu.clantag_separator, ce)
+    ui_set_visible(menu.clantag_prefix, ce)
+    ui_set_visible(menu.clantag_suffix, ce)
+    ui_set_visible(menu.clantag_max_length, ce)
 end
 
 -- UI callbacks
-ui.set_callback(ui.resolver_enable, update_visibility)
-ui.set_callback(ui.killsay_enable, update_visibility)
-ui.set_callback(ui.clantag_enable, update_visibility)
-ui.set_callback(ui.clantag_preset, update_visibility)
-ui.set_callback(ui.on_multi, update_visibility)
-ui.set_callback(ui.death_responses, update_visibility)
-ui.set_callback(ui.domination, update_visibility)
+ui_set_callback(menu.resolver_enable, update_visibility)
+ui_set_callback(menu.killsay_enable, update_visibility)
+ui_set_callback(menu.clantag_enable, update_visibility)
+ui_set_callback(menu.clantag_preset, update_visibility)
+ui_set_callback(menu.on_multi, update_visibility)
+ui_set_callback(menu.death_responses, update_visibility)
+ui_set_callback(menu.domination, update_visibility)
 
 -- Initial visibility
 update_visibility()
@@ -896,5 +907,5 @@ end)
 -- INITIALIZATION COMPLETE
 -- ============================================
 
-client.color_log(150, 255, 150, string_format("%s v%s loaded successfully", script.name, script.version))
-client.color_log(200, 200, 255, "Resolver: 4 modes | Killsay: 5 styles | Clantag: 10 animations")
+client_color_log(150, 255, 150, string_format("%s v%s loaded successfully", script.name, script.version))
+client_color_log(200, 200, 255, "Resolver: 4 modes | Killsay: 5 styles | Clantag: 10 animations")
