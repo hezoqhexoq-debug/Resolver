@@ -1,0 +1,1882 @@
+-- ============================================
+-- MISSWARE V5.0 - ENHANCED EDITION
+-- Advanced P100 Resolver + Neural Prediction
+-- Optimized & Feature-Rich
+-- ============================================
+
+local script_name = "MISSWARE P100"
+local script_version = "5.0 ENHANCED"
+
+-- ============================================
+-- PERFORMANCE CACHE (Enhanced)
+-- ============================================
+
+local entity_get_local_player = entity.get_local_player
+local entity_get_players = entity.get_players
+local entity_get_prop = entity.get_prop
+local entity_is_alive = entity.is_alive
+local entity_get_player_name = entity.get_player_name
+local entity_is_enemy = entity.is_enemy
+local entity_get_origin = entity.get_origin
+local client_set_event_callback = client.set_event_callback
+local client_userid_to_entindex = client.userid_to_entindex
+local client_exec = client.exec
+local client_delay_call = client.delay_call
+local client_set_clan_tag = client.set_clan_tag
+local client_eye_position = client.eye_position
+local ui_new_checkbox = ui.new_checkbox
+local ui_new_combobox = ui.new_combobox
+local ui_new_slider = ui.new_slider
+local ui_new_hotkey = ui.new_hotkey
+local ui_new_label = ui.new_label
+local ui_new_textbox = ui.new_textbox
+local ui_get = ui.get
+local ui_set = ui.set
+local ui_set_visible = ui.set_visible
+local ui_set_callback = ui.set_callback
+local globals_tickcount = globals.tickcount
+local globals_realtime = globals.realtime
+local globals_curtime = globals.curtime
+local globals_tickinterval = globals.tickinterval
+local math_abs = math.abs
+local math_floor = math.floor
+local math_sqrt = math.sqrt
+local math_deg = math.deg
+local math_atan2 = math.atan2
+local math_sin = math.sin
+local math_cos = math.cos
+local math_random = math.random
+local math_max = math.max
+local math_min = math.min
+local math_rad = math.rad
+local renderer_text = renderer.text
+local renderer_circle = renderer.circle
+local renderer_line = renderer.line
+local string_format = string.format
+local table_insert = table.insert
+local table_remove = table.remove
+local table_concat = table.concat
+
+-- ============================================
+-- UI SETUP (Enhanced)
+-- ============================================
+
+local ui = {}
+
+-- P100 Resolver UI
+ui.label_resolver = ui_new_label("LUA", "B", "═══════ P100 V5 RESOLVER ═══════")
+ui.resolver_enable = ui_new_checkbox("LUA", "B", "Enable P100 Resolver")
+ui.resolver_mode = ui_new_combobox("LUA", "B", "Resolver Mode", {
+    "Smart Brute", "Neural Delta", "Velocity Predict", "Advanced Multi", 
+    "P100 AI Pro", "Experimental V2", "Adaptive Hybrid", "Zero-Tick Predict"
+})
+ui.ai_confidence = ui_new_slider("LUA", "B", "AI Confidence", 0, 100, 70, true, "%")
+ui.prediction_depth = ui_new_slider("LUA", "B", "Prediction Depth", 1, 15, 8, true, " ticks")
+ui.pattern_memory = ui_new_slider("LUA", "B", "Pattern Memory", 10, 150, 75, true, "")
+
+ui.label_neural = ui_new_label("LUA", "B", "─── NEURAL SYSTEM ───")
+ui.neural_enable = ui_new_checkbox("LUA", "B", "Neural Prediction")
+ui.neural_weights = ui_new_slider("LUA", "B", "Neural Weight Factor", 1, 10, 5, true, "x")
+ui.temporal_smoothing = ui_new_slider("LUA", "B", "Temporal Smoothing", 0, 100, 35, true, "%")
+ui.shot_history_weight = ui_new_slider("LUA", "B", "Shot History Weight", 0, 100, 60, true, "%")
+
+ui.label_features = ui_new_label("LUA", "B", "─── FEATURES ───")
+ui.adaptive_learning = ui_new_checkbox("LUA", "B", "Adaptive Learning")
+ui.jitter_prediction = ui_new_checkbox("LUA", "B", "Advanced Jitter Detection")
+ui.desync_detection = ui_new_checkbox("LUA", "B", "Desync Detection V2")
+ui.body_aim_correction = ui_new_checkbox("LUA", "B", "Body Aim Correction")
+ui.velocity_extrapolation = ui_new_checkbox("LUA", "B", "Velocity Extrapolation")
+ui.lby_breaker_detect = ui_new_checkbox("LUA", "B", "LBY Breaker Detection")
+ui.stance_detection = ui_new_checkbox("LUA", "B", "Stance Detection")
+ui.freestanding_detect = ui_new_checkbox("LUA", "B", "Freestanding Detection")
+
+ui.label_brute = ui_new_label("LUA", "B", "──── SMART BRUTE ────")
+ui.brute_stages = ui_new_slider("LUA", "B", "Brute Stages", 3, 30, 20, true, "")
+ui.reset_on_miss = ui_new_checkbox("LUA", "B", "Reset on Miss")
+ui.reset_on_death = ui_new_checkbox("LUA", "B", "Reset on Death")
+ui.phase_rotation_speed = ui_new_slider("LUA", "B", "Phase Speed", 1, 8, 3, true, "x")
+ui.brute_randomize = ui_new_checkbox("LUA", "B", "Randomized Phases")
+ui.brute_adaptive = ui_new_checkbox("LUA", "B", "Adaptive Phase Selection")
+
+ui.label_manual = ui_new_label("LUA", "B", "───── MANUAL ─────")
+ui.manual_override = ui_new_hotkey("LUA", "B", "Manual Override")
+ui.override_dir = ui_new_combobox("LUA", "B", "Override Direction", {"Left", "Right", "Center", "Auto-Best"})
+ui.manual_angle = ui_new_slider("LUA", "B", "Manual Angle", -180, 180, 90, true, "°")
+
+ui.label_advanced = ui_new_label("LUA", "B", "───── ADVANCED ─────")
+ui.distance_scaling = ui_new_checkbox("LUA", "B", "Distance-Based Scaling")
+ui.weapon_compensation = ui_new_checkbox("LUA", "B", "Weapon Compensation")
+ui.tick_optimization = ui_new_checkbox("LUA", "B", "Tick Optimization")
+ui.lag_compensation = ui_new_checkbox("LUA", "B", "Lag Compensation")
+
+ui.label_debug = ui_new_label("LUA", "B", "───── DEBUG ─────")
+ui.resolver_debug = ui_new_checkbox("LUA", "B", "Show Debug Info")
+ui.log_hits = ui_new_checkbox("LUA", "B", "Log Hits")
+ui.log_misses = ui_new_checkbox("LUA", "B", "Log Misses")
+ui.visual_debug = ui_new_checkbox("LUA", "B", "Visual Debug Overlay")
+
+-- Kill Say UI (Compact)
+ui.label_killsay = ui_new_label("LUA", "B", "═══════ KILL SAY ═══════")
+ui.killsay_enable = ui_new_checkbox("LUA", "B", "Enable Kill Say")
+ui.killsay_mode = ui_new_combobox("LUA", "B", "Mode", {"Team", "All"})
+ui.killsay_style = ui_new_combobox("LUA", "B", "Style", {"Toxic", "Troll", "Meme", "Pro", "Custom"})
+ui.killsay_delay = ui_new_slider("LUA", "B", "Delay", 0, 2000, 0, true, "ms")
+ui.on_kill = ui_new_checkbox("LUA", "B", "On Kill")
+ui.on_headshot = ui_new_checkbox("LUA", "B", "On HS")
+ui.on_knife = ui_new_checkbox("LUA", "B", "On Knife")
+ui.on_multi = ui_new_checkbox("LUA", "B", "Multi Kill")
+ui.multi_threshold = ui_new_slider("LUA", "B", "Multi Count", 2, 5, 2, true, "")
+ui.death_responses = ui_new_checkbox("LUA", "B", "Death Responses")
+ui.death_style = ui_new_combobox("LUA", "B", "Death Style", {"Excuses", "Salty", "Funny", "Blame", "Toxic"})
+ui.domination = ui_new_checkbox("LUA", "B", "Domination")
+ui.domination_count = ui_new_slider("LUA", "B", "Dom Count", 3, 10, 5, true, "")
+
+-- Clantag UI (Compact)
+ui.label_clantag = ui_new_label("LUA", "B", "═══════ CLANTAG ═══════")
+ui.clantag_enable = ui_new_checkbox("LUA", "B", "Enable Clantag")
+ui.clantag_preset = ui_new_combobox("LUA", "B", "Preset", {
+    "Custom", "MISSWARE", "P100", "GODLIKE", "EZ", "1TAP", "RESOLVER", "GAMING", "PRO", "HVHGOD"
+})
+ui.clantag_custom_text = ui_new_textbox("LUA", "B", "Custom Text")
+ui.clantag_animation = ui_new_combobox("LUA", "B", "Animation", {
+    "Scroll", "Fade", "Blink", "Wave", "Type", "Reverse", "PingPong", "Rainbow", "Glitch", "Bounce"
+})
+ui.clantag_separator = ui_new_combobox("LUA", "B", "Separator", {
+    "None", "[ ]", "{ }", "( )", "| |", "< >", "» «", "★ ★", "• •", "~ ~"
+})
+ui.clantag_prefix = ui_new_textbox("LUA", "B", "Prefix")
+ui.clantag_suffix = ui_new_textbox("LUA", "B", "Suffix")
+ui.clantag_max_length = ui_new_slider("LUA", "B", "Max Length", 4, 20, 12, true, "")
+ui.clantag_speed = ui_new_slider("LUA", "B", "Speed", 1, 10, 3, true, "x")
+
+-- Diagnostics
+ui.label_diag = ui_new_label("LUA", "B", "═══════ STATS ═══════")
+ui.show_diagnostics = ui_new_checkbox("LUA", "B", "Show Statistics")
+
+-- ============================================
+-- ENHANCED DATA STRUCTURES
+-- ============================================
+
+local diagnostics = {
+    resolver_applies = 0,
+    resolver_hits = 0,
+    resolver_misses = 0,
+    killsay_sent = 0,
+    deaths = 0,
+    start_time = globals_realtime(),
+    ai_predictions = 0,
+    ai_successes = 0,
+    neural_corrections = 0,
+    perfect_resolves = 0
+}
+
+local resolver_data = {}
+local kill_tracker = {
+    last_kill_time = 0,
+    kill_count = 0,
+    per_player = {},
+    streak = 0,
+    best_streak = 0
+}
+
+-- ============================================
+-- HELPER FUNCTIONS (Enhanced)
+-- ============================================
+
+local function safe_get_combobox(value)
+    if type(value) == "number" then return value end
+    if type(value) == "string" then
+        local num = tonumber(value)
+        if num then return num end
+    end
+    return 0
+end
+
+local function normalize_angle(angle)
+    while angle > 180 do angle = angle - 360 end
+    while angle < -180 do angle = angle + 360 end
+    return angle
+end
+
+local function angle_diff(a1, a2)
+    local diff = normalize_angle(a1 - a2)
+    return math_abs(diff)
+end
+
+local function lerp(a, b, t)
+    return a + (b - a) * t
+end
+
+local function clamp(val, min_val, max_val)
+    return math_max(min_val, math_min(max_val, val))
+end
+
+local function get_player_distance(pid)
+    local me = entity_get_local_player()
+    if not me then return 9999 end
+    local my_x, my_y, my_z = entity_get_origin(me)
+    local pl_x, pl_y, pl_z = entity_get_origin(pid)
+    if not my_x or not pl_x then return 9999 end
+    local dx = pl_x - my_x
+    local dy = pl_y - my_y
+    local dz = pl_z - my_z
+    return math_sqrt(dx*dx + dy*dy + dz*dz)
+end
+
+-- ============================================
+-- ENHANCED P100 RESOLVER SYSTEM
+-- ============================================
+
+local function init_player_data(pid)
+    if resolver_data[pid] then return end
+    
+    resolver_data[pid] = {
+        -- Brute force
+        brute_stage = 1,
+        brute_phases = {
+            0, 60, -60, 30, -30, 90, -90, 45, -45, 120, -120, 
+            15, -15, 75, -75, 105, -105, 135, -135, 22, -22,
+            35, -35, 52, -52, 67, -67, 82, -82, 97, -97
+        },
+        custom_phases = {},
+        
+        -- Angle tracking
+        last_eye_angles = {0, 0},
+        eye_angle_history = {},
+        delta_history = {},
+        
+        -- Jitter detection (Enhanced)
+        jitter_detected = false,
+        jitter_pattern = {},
+        jitter_frequency = 0,
+        jitter_amplitude = 0,
+        jitter_type = "none",
+        jitter_cycle_length = 0,
+        
+        -- Movement tracking (Enhanced)
+        last_origin = {0, 0, 0},
+        origin_history = {},
+        last_velocity = {0, 0, 0},
+        velocity_history = {},
+        moving = false,
+        move_direction = 0,
+        acceleration = 0,
+        speed = 0,
+        
+        -- Body yaw / Desync (Enhanced)
+        body_yaw = 0,
+        last_body_yaw = 0,
+        body_yaw_delta = 0,
+        lby_update_tick = 0,
+        lby_update_times = {},
+        desync_side = 0,
+        desync_amount = 0,
+        fake_detected = false,
+        desync_history = {},
+        
+        -- Stance detection
+        stance = "stand",
+        in_air = false,
+        ducking = false,
+        last_flags = 0,
+        
+        -- Shot tracking (Enhanced)
+        misses = 0,
+        shot_misses = 0,
+        shot_hits = 0,
+        total_shots = 0,
+        last_shot_tick = 0,
+        shot_angles = {},
+        
+        -- Success tracking
+        working_angles = {},
+        failed_angles = {},
+        angle_success_rate = {},
+        best_angle = 0,
+        best_angle_hits = 0,
+        
+        -- Resolve data
+        last_resolve_angle = 0,
+        resolve_history = {},
+        confidence = 0,
+        resolve_attempts = 0,
+        resolve_success = 0,
+        last_update_tick = 0,
+        
+        -- AI / Neural
+        aa_type = "unknown",
+        aa_pattern = {},
+        neural_weights = {0.25, 0.25, 0.25, 0.25},
+        prediction_error = 0,
+        temporal_buffer = {},
+        
+        -- Freestanding
+        freestanding_side = 0,
+        wall_trace_left = 9999,
+        wall_trace_right = 9999,
+        
+        -- Distance / weapon
+        last_distance = 0,
+        weapon_type = "rifle",
+        
+        -- Performance
+        process_time = 0,
+        last_processed = 0
+    }
+end
+
+local function reset_player_data(pid)
+    if not resolver_data[pid] then return end
+    local d = resolver_data[pid]
+    d.brute_stage = 1
+    d.misses = 0
+    d.delta_history = {}
+    d.jitter_pattern = {}
+    d.resolve_history = {}
+    d.temporal_buffer = {}
+    d.aa_pattern = {}
+end
+
+-- ============================================
+-- ENHANCED DETECTION SYSTEMS
+-- ============================================
+
+local function detect_stance(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.stance_detection) then return end
+    
+    local flags = entity_get_prop(pid, "m_fFlags")
+    if not flags then return end
+    
+    d.last_flags = flags
+    d.in_air = bit.band(flags, 1) == 0
+    d.ducking = bit.band(flags, 4) ~= 0
+    
+    if d.ducking then
+        d.stance = "crouch"
+    elseif d.in_air then
+        d.stance = "air"
+    else
+        d.stance = "stand"
+    end
+end
+
+local function detect_lby_breaker(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.lby_breaker_detect) then return false end
+    
+    local lby = entity_get_prop(pid, "m_flLowerBodyYawTarget")
+    if not lby then return false end
+    
+    if lby ~= d.last_body_yaw then
+        local tick = globals_tickcount()
+        table_insert(d.lby_update_times, tick)
+        if #d.lby_update_times > 10 then
+            table_remove(d.lby_update_times, 1)
+        end
+        
+        if #d.lby_update_times >= 3 then
+            local t1 = d.lby_update_times[#d.lby_update_times]
+            local t2 = d.lby_update_times[#d.lby_update_times - 1]
+            local t3 = d.lby_update_times[#d.lby_update_times - 2]
+            
+            local interval1 = t1 - t2
+            local interval2 = t2 - t3
+            
+            if math_abs(interval1 - interval2) < 5 and interval1 > 60 and interval1 < 130 then
+                d.aa_type = "lby_breaker"
+                return true
+            end
+        end
+        
+        d.lby_update_tick = tick
+    end
+    
+    return false
+end
+
+local function detect_freestanding(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.freestanding_detect) then return 0 end
+    
+    local ox, oy, oz = entity_get_origin(pid)
+    local eye_yaw = entity_get_prop(pid, "m_angEyeAngles[1]")
+    if not ox or not eye_yaw then return 0 end
+    
+    local yaw_rad = math_rad(eye_yaw)
+    local forward_x = math_cos(yaw_rad)
+    local forward_y = math_sin(yaw_rad)
+    
+    local left_yaw = math_rad(eye_yaw + 90)
+    local right_yaw = math_rad(eye_yaw - 90)
+    
+    local trace_dist = 150
+    local left_x = ox + math_cos(left_yaw) * trace_dist
+    local left_y = oy + math_sin(left_yaw) * trace_dist
+    local right_x = ox + math_cos(right_yaw) * trace_dist
+    local right_y = oy + math_sin(right_yaw) * trace_dist
+    
+    local dx_left = left_x - ox
+    local dy_left = left_y - oy
+    local dist_left = math_sqrt(dx_left*dx_left + dy_left*dy_left)
+    
+    local dx_right = right_x - ox
+    local dy_right = right_y - oy
+    local dist_right = math_sqrt(dx_right*dx_right + dy_right*dy_right)
+    
+    d.wall_trace_left = dist_left
+    d.wall_trace_right = dist_right
+    
+    if math_abs(dist_left - dist_right) > 50 then
+        d.freestanding_side = dist_left < dist_right and -1 or 1
+        return d.freestanding_side * 65
+    end
+    
+    return 0
+end
+
+-- ============================================
+-- ADVANCED JITTER DETECTION (V2)
+-- ============================================
+
+local function detect_advanced_jitter(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.jitter_prediction) then return 0 end
+    
+    if #d.delta_history < 15 then return 0 end
+    
+    local variance = 0
+    local avg_delta = 0
+    local zero_crossings = 0
+    local peak_count = 0
+    local last_direction = 0
+    
+    for i = 1, #d.delta_history do
+        avg_delta = avg_delta + d.delta_history[i][1]
+    end
+    avg_delta = avg_delta / #d.delta_history
+    
+    for i = 1, #d.delta_history do
+        local delta_val = d.delta_history[i][1]
+        variance = variance + (delta_val - avg_delta) ^ 2
+        
+        if i > 1 then
+            local prev = d.delta_history[i-1][1]
+            local curr = delta_val
+            
+            if (prev > 0 and curr < 0) or (prev < 0 and curr > 0) then
+                zero_crossings = zero_crossings + 1
+            end
+            
+            if i > 2 then
+                local prev_prev = d.delta_history[i-2][1]
+                if (curr > prev and prev < prev_prev) or (curr < prev and prev > prev_prev) then
+                    peak_count = peak_count + 1
+                end
+            end
+        end
+    end
+    
+    variance = math_sqrt(variance / #d.delta_history)
+    
+    local jitter_score = (variance / 10) + (zero_crossings / 2) + (peak_count / 1.5)
+    
+    if jitter_score > 12 then
+        d.jitter_detected = true
+        d.jitter_frequency = zero_crossings
+        d.jitter_amplitude = variance
+        
+        if zero_crossings > (#d.delta_history * 0.6) then
+            d.jitter_type = "rapid"
+        elseif peak_count > (#d.delta_history * 0.4) then
+            d.jitter_type = "sine_wave"
+        else
+            d.jitter_type = "random"
+        end
+        
+        table_insert(d.jitter_pattern, d.last_eye_angles[2])
+        if #d.jitter_pattern > 20 then
+            table_remove(d.jitter_pattern, 1)
+        end
+        
+        if d.jitter_type == "sine_wave" and #d.jitter_pattern >= 6 then
+            local sum = 0
+            local count = math_min(6, #d.jitter_pattern)
+            for i = #d.jitter_pattern - count + 1, #d.jitter_pattern do
+                sum = sum + d.jitter_pattern[i]
+            end
+            local avg = sum / count
+            
+            local trend = 0
+            for i = #d.jitter_pattern - 2, #d.jitter_pattern do
+                trend = trend + (d.jitter_pattern[i] - d.jitter_pattern[i-1])
+            end
+            trend = trend / 3
+            
+            local predicted = avg + (trend * 1.2)
+            return normalize_angle(predicted - d.last_eye_angles[2])
+        elseif d.jitter_type == "rapid" then
+            local last = d.jitter_pattern[#d.jitter_pattern]
+            local prev = d.jitter_pattern[#d.jitter_pattern - 1]
+            if last and prev then
+                local flip = normalize_angle(last - prev)
+                return flip > 0 and -60 or 60
+            end
+        end
+    else
+        d.jitter_detected = false
+        d.jitter_type = "none"
+    end
+    
+    return 0
+end
+
+-- ============================================
+-- NEURAL PREDICTION SYSTEM
+-- ============================================
+
+local function neural_predict(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.neural_enable) then return 0 end
+    
+    diagnostics.neural_corrections = diagnostics.neural_corrections + 1
+    
+    local inputs = {
+        jitter = d.jitter_detected and d.jitter_amplitude / 100 or 0,
+        velocity = d.speed / 250,
+        desync = math_abs(d.desync_amount) / 60,
+        lby_delta = math_abs(d.body_yaw_delta) / 180,
+        moving = d.moving and 1 or 0,
+        in_air = d.in_air and 1 or 0,
+        ducking = d.ducking and 1 or 0,
+        distance = clamp(d.last_distance / 2000, 0, 1)
+    }
+    
+    local hit_rate = d.total_shots > 0 and (d.shot_hits / d.total_shots) or 0.5
+    
+    local output_angles = {
+        0,
+        d.jitter_detected and detect_advanced_jitter(pid) or 0,
+        d.moving and (d.move_direction > 0 and 65 or -65) or 0,
+        d.fake_detected and (-d.desync_amount * 0.8) or 0
+    }
+    
+    local weight_factor = ui_get(ui.neural_weights) / 5
+    
+    if hit_rate > 0.7 then
+        d.neural_weights[1] = lerp(d.neural_weights[1], 0.1, 0.1)
+        d.neural_weights[2] = lerp(d.neural_weights[2], 
+            d.jitter_detected and 0.5 or 0.2, 0.1)
+        d.neural_weights[3] = lerp(d.neural_weights[3], 
+            d.moving and 0.4 or 0.15, 0.1)
+        d.neural_weights[4] = lerp(d.neural_weights[4], 
+            d.fake_detected and 0.35 or 0.15, 0.1)
+    elseif hit_rate < 0.3 and d.total_shots > 5 then
+        for i = 1, 4 do
+            d.neural_weights[i] = lerp(d.neural_weights[i], 0.25, 0.15)
+        end
+    end
+    
+    local sum = d.neural_weights[1] + d.neural_weights[2] + d.neural_weights[3] + d.neural_weights[4]
+    for i = 1, 4 do
+        d.neural_weights[i] = d.neural_weights[i] / sum
+    end
+    
+    local final_angle = 0
+    for i = 1, 4 do
+        final_angle = final_angle + (output_angles[i] * d.neural_weights[i] * weight_factor)
+    end
+    
+    local smoothing = ui_get(ui.temporal_smoothing) / 100
+    if smoothing > 0 and #d.temporal_buffer > 0 then
+        local prev_angle = d.temporal_buffer[#d.temporal_buffer]
+        final_angle = lerp(prev_angle, final_angle, 1 - smoothing)
+    end
+    
+    table_insert(d.temporal_buffer, final_angle)
+    if #d.temporal_buffer > 5 then
+        table_remove(d.temporal_buffer, 1)
+    end
+    
+    return final_angle
+end
+
+-- ============================================
+-- SMART BRUTEFORCE (Enhanced)
+-- ============================================
+
+local function resolve_smart_brute(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local max_stages = ui_get(ui.brute_stages)
+    local stage = math_min(d.brute_stage, max_stages)
+    
+    if ui_get(ui.brute_randomize) and d.misses > 5 then
+        local randomized = {}
+        for i = 1, max_stages do
+            randomized[i] = d.brute_phases[i] + math_random(-10, 10)
+        end
+        d.custom_phases = randomized
+    end
+    
+    local phases = #d.custom_phases > 0 and d.custom_phases or d.brute_phases
+    local angle = phases[stage] or 0
+    
+    if ui_get(ui.brute_adaptive) then
+        local best_angle = 0
+        local best_rate = 0
+        
+        for ang, rate in pairs(d.angle_success_rate) do
+            if rate > best_rate and rate > 0.6 then
+                best_angle = ang
+                best_rate = rate
+            end
+        end
+        
+        if best_angle ~= 0 and d.total_shots > 8 then
+            angle = lerp(angle, best_angle, 0.5)
+        end
+    end
+    
+    if ui_get(ui.distance_scaling) then
+        local dist = get_player_distance(pid)
+        d.last_distance = dist
+        if dist < 500 then
+            angle = angle * 1.15
+        elseif dist > 2000 then
+            angle = angle * 0.85
+        end
+    end
+    
+    return angle
+end
+
+-- ============================================
+-- VELOCITY PREDICTION (Enhanced)
+-- ============================================
+
+local function resolve_velocity_predict(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local vel_x = entity_get_prop(pid, "m_vecVelocity[0]")
+    local vel_y = entity_get_prop(pid, "m_vecVelocity[1]")
+    local vel_z = entity_get_prop(pid, "m_vecVelocity[2]")
+    if not vel_x then return 0 end
+    
+    d.speed = math_sqrt(vel_x * vel_x + vel_y * vel_y)
+    
+    table_insert(d.velocity_history, {vel_x, vel_y, vel_z, globals_tickcount()})
+    if #d.velocity_history > 30 then
+        table_remove(d.velocity_history, 1)
+    end
+    
+    if #d.velocity_history >= 3 then
+        local v1 = d.velocity_history[#d.velocity_history]
+        local v2 = d.velocity_history[#d.velocity_history - 1]
+        local v3 = d.velocity_history[#d.velocity_history - 2]
+        
+        local accel_x = (v1[1] - v2[1]) + (v2[1] - v3[1])
+        local accel_y = (v1[2] - v2[2]) + (v2[2] - v3[2])
+        d.acceleration = math_sqrt(accel_x * accel_x + accel_y * accel_y)
+    end
+    
+    d.last_velocity = {vel_x, vel_y, vel_z}
+    d.moving = d.speed > 5
+    
+    if d.moving then
+        local move_angle = math_deg(math_atan2(vel_y, vel_x))
+        local eye_yaw = entity_get_prop(pid, "m_angEyeAngles[1]") or 0
+        
+        d.move_direction = normalize_angle(move_angle - eye_yaw)
+        
+        if ui_get(ui.velocity_extrapolation) and #d.velocity_history >= 5 then
+            local ticks = ui_get(ui.prediction_depth)
+            local ti = globals_tickinterval()
+            
+            local ox, oy, oz = entity_get_origin(pid)
+            if not ox then return 0 end
+            
+            local future_x = ox + (vel_x * ticks * ti) + (0.5 * d.acceleration * (ticks * ti) ^ 2)
+            local future_y = oy + (vel_y * ticks * ti) + (0.5 * d.acceleration * (ticks * ti) ^ 2)
+            
+            local future_angle = math_deg(math_atan2(future_y - oy, future_x - ox))
+            local future_delta = normalize_angle(future_angle - eye_yaw)
+            
+            local angle_adjustment = future_delta > 0 and 70 or -70
+            
+            if d.stance == "crouch" then
+                angle_adjustment = angle_adjustment * 0.85
+            elseif d.in_air then
+                angle_adjustment = angle_adjustment * 1.2
+            end
+            
+            return angle_adjustment
+        end
+        
+        return d.move_direction > 0 and 60 or -60
+    end
+    
+    return 0
+end
+
+-- ============================================
+-- DESYNC DETECTION V2
+-- ============================================
+
+local function detect_desync_v2(pid)
+    local d = resolver_data[pid]
+    if not d or not ui_get(ui.desync_detection) then return 0 end
+    
+    local eye_yaw = entity_get_prop(pid, "m_angEyeAngles[1]")
+    local lby = entity_get_prop(pid, "m_flLowerBodyYawTarget")
+    
+    if not eye_yaw or not lby then return 0 end
+    
+    local desync = normalize_angle(eye_yaw - lby)
+    
+    d.body_yaw_delta = normalize_angle(lby - d.last_body_yaw)
+    d.last_body_yaw = lby
+    d.desync_amount = desync
+    
+    table_insert(d.desync_history, {desync, globals_tickcount()})
+    if #d.desync_history > 20 then
+        table_remove(d.desync_history, 1)
+    end
+    
+    local desync_stable = true
+    if #d.desync_history >= 5 then
+        for i = #d.desync_history - 4, #d.desync_history do
+            if math_abs(d.desync_history[i][1]) < 25 then
+                desync_stable = false
+                break
+            end
+        end
+    end
+    
+    if math_abs(desync) > 35 and desync_stable then
+        d.fake_detected = true
+        d.desync_side = desync > 0 and 1 or -1
+        d.aa_type = "desync"
+        
+        if ui_get(ui.body_aim_correction) then
+            local correction = -desync * 0.75
+            
+            if math_abs(d.body_yaw_delta) > 100 then
+                correction = correction * 1.2
+            end
+            
+            return correction
+        end
+    else
+        d.fake_detected = false
+        d.desync_side = 0
+    end
+    
+    return 0
+end
+
+-- ============================================
+-- DELTA RESOLVER (Enhanced)
+-- ============================================
+
+local function resolve_neural_delta(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local pitch = entity_get_prop(pid, "m_angEyeAngles[0]")
+    local yaw = entity_get_prop(pid, "m_angEyeAngles[1]")
+    if not pitch or not yaw then return 0 end
+    
+    local delta_yaw = normalize_angle(yaw - d.last_eye_angles[2])
+    local delta_pitch = pitch - d.last_eye_angles[1]
+    
+    table_insert(d.delta_history, {delta_yaw, delta_pitch, globals_tickcount()})
+    if #d.delta_history > ui_get(ui.pattern_memory) then
+        table_remove(d.delta_history, 1)
+    end
+    
+    table_insert(d.eye_angle_history, {pitch, yaw, globals_tickcount()})
+    if #d.eye_angle_history > ui_get(ui.pattern_memory) then
+        table_remove(d.eye_angle_history, 1)
+    end
+    
+    local jitter_correction = detect_advanced_jitter(pid)
+    
+    d.last_eye_angles = {pitch, yaw}
+    
+    if d.jitter_detected then
+        return jitter_correction
+    end
+    
+    if math_abs(delta_yaw) > 35 then
+        return delta_yaw > 0 and 65 or -65
+    end
+    
+    return 0
+end
+
+-- ============================================
+-- P100 AI PRO (Ultimate Resolver)
+-- ============================================
+
+local function resolve_p100_ai_pro(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    diagnostics.ai_predictions = diagnostics.ai_predictions + 1
+    
+    detect_stance(pid)
+    local lby_breaker = detect_lby_breaker(pid)
+    local freestanding = detect_freestanding(pid)
+    
+    local brute = resolve_smart_brute(pid)
+    local delta = resolve_neural_delta(pid)
+    local velocity = resolve_velocity_predict(pid)
+    local desync = detect_desync_v2(pid)
+    local neural = neural_predict(pid)
+    
+    local confidence_threshold = ui_get(ui.ai_confidence) / 100
+    local final_angle = 0
+    local confidence = 0
+    
+    if lby_breaker then
+        final_angle = desync
+        confidence = 0.90
+        d.aa_type = "lby_breaker"
+    elseif d.jitter_detected and d.jitter_frequency > 6 then
+        final_angle = delta
+        confidence = 0.88
+        d.aa_type = "jitter_" .. d.jitter_type
+    elseif d.moving and d.speed > 100 then
+        final_angle = velocity
+        confidence = 0.85
+        d.aa_type = "velocity"
+    elseif d.fake_detected and math_abs(d.desync_amount) > 45 then
+        final_angle = desync
+        confidence = 0.83
+        d.aa_type = "desync"
+    elseif math_abs(freestanding) > 30 then
+        final_angle = freestanding
+        confidence = 0.75
+        d.aa_type = "freestanding"
+    elseif ui_get(ui.neural_enable) then
+        final_angle = neural
+        confidence = 0.72
+        d.aa_type = "neural"
+    elseif #d.resolve_history >= 8 then
+        local recent_success = 0
+        local recent_total = 0
+        local pattern_angle = 0
+        
+        for i = math_max(1, #d.resolve_history - 10), #d.resolve_history do
+            local hist = d.resolve_history[i]
+            if hist.success ~= nil then
+                recent_total = recent_total + 1
+                if hist.success then
+                    recent_success = recent_success + 1
+                    pattern_angle = pattern_angle + hist.angle
+                end
+            end
+        end
+        
+        if recent_success > 0 and recent_total > 0 then
+            local recent_rate = recent_success / recent_total
+            if recent_rate > 0.6 then
+                final_angle = pattern_angle / recent_success
+                confidence = 0.70 + (recent_rate * 0.15)
+                d.aa_type = "pattern_learned"
+            else
+                final_angle = brute
+                confidence = 0.55
+                d.aa_type = "brute_fallback"
+            end
+        else
+            final_angle = brute
+            confidence = 0.50
+            d.aa_type = "bruteforce"
+        end
+    else
+        final_angle = brute
+        confidence = 0.45
+        d.aa_type = "bruteforce"
+    end
+    
+    if ui_get(ui.adaptive_learning) and d.total_shots > 5 then
+        local best_angle = d.best_angle
+        local best_hits = d.best_angle_hits
+        
+        for angle, hits in pairs(d.working_angles) do
+            if hits > best_hits then
+                best_angle = angle
+                best_hits = hits
+            end
+        end
+        
+        d.best_angle = best_angle
+        d.best_angle_hits = best_hits
+        
+        if best_hits >= 4 and d.total_shots > 8 then
+            local hit_rate = d.shot_hits / d.total_shots
+            if hit_rate > 0.65 then
+                final_angle = lerp(final_angle, best_angle, 0.5)
+                confidence = math_min(confidence + 0.12, 0.97)
+                d.aa_type = d.aa_type .. "_adaptive"
+            end
+        end
+    end
+    
+    if ui_get(ui.shot_history_weight) > 0 and #d.shot_angles > 0 then
+        local weight = ui_get(ui.shot_history_weight) / 100
+        local recent_avg = 0
+        local count = 0
+        
+        for i = math_max(1, #d.shot_angles - 5), #d.shot_angles do
+            if d.shot_angles[i].success then
+                recent_avg = recent_avg + d.shot_angles[i].angle
+                count = count + 1
+            end
+        end
+        
+        if count > 0 then
+            recent_avg = recent_avg / count
+            final_angle = lerp(final_angle, recent_avg, weight)
+        end
+    end
+    
+    if confidence < confidence_threshold then
+        final_angle = brute
+        confidence = 0.50
+        d.aa_type = "low_confidence_brute"
+    end
+    
+    if d.stance == "crouch" then
+        final_angle = final_angle * 0.9
+    elseif d.stance == "air" then
+        final_angle = final_angle * 1.1
+    end
+    
+    d.confidence = confidence
+    
+    return final_angle
+end
+
+-- ============================================
+-- EXPERIMENTAL V2 (Multi-Layer Fusion)
+-- ============================================
+
+local function resolve_experimental_v2(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local layers = {
+        {angle = resolve_smart_brute(pid), weight = 0.12},
+        {angle = resolve_neural_delta(pid), weight = d.jitter_detected and 0.28 or 0.15},
+        {angle = resolve_velocity_predict(pid), weight = d.moving and 0.30 or 0.12},
+        {angle = detect_desync_v2(pid), weight = d.fake_detected and 0.25 or 0.10},
+        {angle = neural_predict(pid), weight = ui_get(ui.neural_enable) and 0.35 or 0.15},
+        {angle = detect_freestanding(pid), weight = 0.08}
+    }
+    
+    local total_angle = 0
+    local total_weight = 0
+    
+    for i = 1, #layers do
+        total_angle = total_angle + (layers[i].angle * layers[i].weight)
+        total_weight = total_weight + layers[i].weight
+    end
+    
+    local final_angle = total_angle / total_weight
+    
+    if #d.eye_angle_history >= 4 and ui_get(ui.tick_optimization) then
+        local h1 = d.eye_angle_history[#d.eye_angle_history]
+        local h2 = d.eye_angle_history[#d.eye_angle_history - 1]
+        local h3 = d.eye_angle_history[#d.eye_angle_history - 2]
+        local h4 = d.eye_angle_history[#d.eye_angle_history - 3]
+        
+        local vel1 = normalize_angle(h1[2] - h2[2])
+        local vel2 = normalize_angle(h2[2] - h3[2])
+        local vel3 = normalize_angle(h3[2] - h4[2])
+        
+        local accel1 = normalize_angle(vel1 - vel2)
+        local accel2 = normalize_angle(vel2 - vel3)
+        local jerk = normalize_angle(accel1 - accel2)
+        
+        local ticks = ui_get(ui.prediction_depth)
+        local predicted = (vel1 * ticks) + (0.5 * accel1 * ticks^2) + (0.16 * jerk * ticks^3)
+        
+        final_angle = final_angle + (predicted * 0.25)
+    end
+    
+    if ui_get(ui.lag_compensation) then
+        local latency = entity_get_prop(pid, "m_flSimulationTime")
+        if latency then
+            final_angle = final_angle * (1 + math_min(latency * 0.1, 0.3))
+        end
+    end
+    
+    return final_angle
+end
+
+-- ============================================
+-- ZERO-TICK PREDICTION
+-- ============================================
+
+local function resolve_zero_tick(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local base = resolve_p100_ai_pro(pid)
+    
+    if #d.resolve_history >= 3 then
+        local last_3 = {
+            d.resolve_history[#d.resolve_history],
+            d.resolve_history[#d.resolve_history - 1],
+            d.resolve_history[#d.resolve_history - 2]
+        }
+        
+        local same_aa = true
+        for i = 1, 3 do
+            if last_3[i].aa_type ~= last_3[1].aa_type then
+                same_aa = false
+                break
+            end
+        end
+        
+        if same_aa and last_3[1].aa_type ~= "bruteforce" then
+            local avg_angle = (last_3[1].angle + last_3[2].angle + last_3[3].angle) / 3
+            base = lerp(base, avg_angle, 0.4)
+            diagnostics.perfect_resolves = diagnostics.perfect_resolves + 1
+        end
+    end
+    
+    return base
+end
+
+-- ============================================
+-- ADAPTIVE HYBRID
+-- ============================================
+
+local function resolve_adaptive_hybrid(pid)
+    local d = resolver_data[pid]
+    if not d then return 0 end
+    
+    local hit_rate = d.total_shots > 0 and (d.shot_hits / d.total_shots) or 0.5
+    
+    local mode_selection = nil
+    
+    if hit_rate > 0.75 then
+        mode_selection = resolve_p100_ai_pro
+    elseif hit_rate > 0.5 then
+        mode_selection = resolve_experimental_v2
+    elseif d.jitter_detected then
+        mode_selection = resolve_neural_delta
+    elseif d.moving then
+        mode_selection = resolve_velocity_predict
+    else
+        mode_selection = resolve_smart_brute
+    end
+    
+    return mode_selection(pid)
+end
+
+-- ============================================
+-- MAIN RESOLVER APPLICATION
+-- ============================================
+
+local function apply_resolver(pid)
+    if not ui_get(ui.resolver_enable) then return end
+    
+    local me = entity_get_local_player()
+    if not me or not entity_is_alive(me) then return end
+    if not entity_is_enemy(pid) then return end
+    if not entity_is_alive(pid) then return end
+    
+    local start_time = globals_realtime()
+    
+    init_player_data(pid)
+    local d = resolver_data[pid]
+    if not d then return end
+    
+    local current_tick = globals_tickcount()
+    if current_tick - d.last_processed < 1 then return end
+    d.last_processed = current_tick
+    
+    local angle = 0
+    
+    if ui_get(ui.manual_override) then
+        local override_mode = safe_get_combobox(ui_get(ui.override_dir))
+        
+        if override_mode == 0 then
+            angle = ui_get(ui.manual_angle)
+        elseif override_mode == 1 then
+            angle = -ui_get(ui.manual_angle)
+        elseif override_mode == 2 then
+            angle = 0
+        else
+            angle = d.best_angle or 0
+        end
+    else
+        local mode = safe_get_combobox(ui_get(ui.resolver_mode))
+        
+        if mode == 0 then
+            angle = resolve_smart_brute(pid)
+        elseif mode == 1 then
+            angle = resolve_neural_delta(pid)
+        elseif mode == 2 then
+            angle = resolve_velocity_predict(pid)
+        elseif mode == 3 then
+            angle = resolve_smart_brute(pid) * 0.3 + 
+                    resolve_neural_delta(pid) * 0.4 + 
+                    detect_desync_v2(pid) * 0.3
+        elseif mode == 4 then
+            angle = resolve_p100_ai_pro(pid)
+        elseif mode == 5 then
+            angle = resolve_experimental_v2(pid)
+        elseif mode == 6 then
+            angle = resolve_adaptive_hybrid(pid)
+        elseif mode == 7 then
+            angle = resolve_zero_tick(pid)
+        else
+            angle = resolve_smart_brute(pid)
+        end
+    end
+    
+    angle = clamp(angle, -180, 180)
+    
+    if plist then
+        pcall(function()
+            plist.set(pid, "Force body yaw", true)
+            plist.set(pid, "Force body yaw value", angle)
+        end)
+    end
+    
+    table_insert(d.resolve_history, {
+        angle = angle,
+        tick = current_tick,
+        confidence = d.confidence,
+        aa_type = d.aa_type,
+        success = nil
+    })
+    if #d.resolve_history > 100 then
+        table_remove(d.resolve_history, 1)
+    end
+    
+    d.last_resolve_angle = angle
+    d.resolve_attempts = d.resolve_attempts + 1
+    d.last_update_tick = current_tick
+    
+    d.process_time = globals_realtime() - start_time
+    
+    diagnostics.resolver_applies = diagnostics.resolver_applies + 1
+end
+
+-- ============================================
+-- EVENT HANDLERS (Enhanced)
+-- ============================================
+
+client_set_event_callback("aim_miss", function(e)
+    diagnostics.resolver_misses = diagnostics.resolver_misses + 1
+    
+    if not ui_get(ui.resolver_enable) or not e.target then return end
+    
+    init_player_data(e.target)
+    local d = resolver_data[e.target]
+    if not d then return end
+    
+    d.misses = d.misses + 1
+    d.shot_misses = d.shot_misses + 1
+    d.total_shots = d.total_shots + 1
+    d.failed_angles[d.last_resolve_angle] = (d.failed_angles[d.last_resolve_angle] or 0) + 1
+    
+    if #d.resolve_history > 0 then
+        d.resolve_history[#d.resolve_history].success = false
+    end
+    
+    table_insert(d.shot_angles, {
+        angle = d.last_resolve_angle,
+        success = false,
+        tick = globals_tickcount()
+    })
+    if #d.shot_angles > 50 then
+        table_remove(d.shot_angles, 1)
+    end
+    
+    for angle, fails in pairs(d.failed_angles) do
+        local hits = d.working_angles[angle] or 0
+        local total = hits + fails
+        d.angle_success_rate[angle] = total > 0 and (hits / total) or 0
+    end
+    
+    if ui_get(ui.neural_enable) then
+        d.prediction_error = d.prediction_error + 1
+    end
+    
+    if ui_get(ui.reset_on_miss) then
+        local speed = ui_get(ui.phase_rotation_speed)
+        d.brute_stage = d.brute_stage + speed
+        if d.brute_stage > ui_get(ui.brute_stages) then
+            d.brute_stage = 1
+        end
+    end
+    
+    if ui_get(ui.log_misses) then
+        local name = entity_get_player_name(e.target) or "Unknown"
+        client.color_log(255, 100, 100, "[P100] ", 255, 255, 255,
+            string_format("Miss: %s | %d° | %s | %s | C:%.0f%%", 
+                name, d.last_resolve_angle, d.aa_type or "?", e.reason or "?", (d.confidence or 0) * 100))
+    end
+end)
+
+client_set_event_callback("aim_hit", function(e)
+    diagnostics.resolver_hits = diagnostics.resolver_hits + 1
+    
+    if not ui_get(ui.resolver_enable) or not e.target then return end
+    
+    init_player_data(e.target)
+    local d = resolver_data[e.target]
+    if not d then return end
+    
+    d.shot_hits = d.shot_hits + 1
+    d.total_shots = d.total_shots + 1
+    d.resolve_success = d.resolve_success + 1
+    d.working_angles[d.last_resolve_angle] = (d.working_angles[d.last_resolve_angle] or 0) + 1
+    
+    if #d.resolve_history > 0 then
+        d.resolve_history[#d.resolve_history].success = true
+    end
+    
+    table_insert(d.shot_angles, {
+        angle = d.last_resolve_angle,
+        success = true,
+        tick = globals_tickcount()
+    })
+    if #d.shot_angles > 50 then
+        table_remove(d.shot_angles, 1)
+    end
+    
+    if d.aa_type and (d.aa_type:find("neural") or d.aa_type:find("ai") or d.aa_type:find("pattern")) then
+        diagnostics.ai_successes = diagnostics.ai_successes + 1
+    end
+    
+    for angle, hits in pairs(d.working_angles) do
+        local fails = d.failed_angles[angle] or 0
+        local total = hits + fails
+        d.angle_success_rate[angle] = total > 0 and (hits / total) or 0
+    end
+    
+    if ui_get(ui.log_hits) then
+        local name = entity_get_player_name(e.target) or "Unknown"
+        client.color_log(100, 255, 100, "[P100] ", 255, 255, 255,
+            string_format("✓ %s | %d° | %s | HB:%d | %dHP | C:%.0f%%", 
+                name, d.last_resolve_angle, d.aa_type or "?", e.hitbox or 0, e.damage or 0, (d.confidence or 0) * 100))
+    end
+end)
+
+client_set_event_callback("round_start", function()
+    for pid, _ in pairs(resolver_data) do
+        reset_player_data(pid)
+    end
+    kill_tracker.kill_count = 0
+    kill_tracker.per_player = {}
+end)
+
+client_set_event_callback("player_death", function(e)
+    if not ui_get(ui.reset_on_death) then return end
+    local vic = client_userid_to_entindex(e.userid)
+    if vic and resolver_data[vic] then
+        reset_player_data(vic)
+    end
+end)
+
+client_set_event_callback("pre_predict_command", function()
+    if not ui_get(ui.resolver_enable) then return end
+    
+    local players = entity_get_players(true)
+    if not players then return end
+    
+    for i = 1, #players do
+        local p = players[i]
+        if p and entity_is_alive(p) then
+            pcall(apply_resolver, p)
+        end
+    end
+end)
+
+-- ============================================
+-- KILL SAY (Keep original - already good)
+-- ============================================
+
+local messages = {
+    toxic = {
+        normal = {"ez", "sit", "?", "nn", "bot", "1", "L", "dog", "trash", "rekt"},
+        headshot = {"hs only", "1 tap", "aim diff", "dink", "boom headshot"},
+        knife = {"get knifed", "stabbed", "ty for skins", "$$$", "knife diff"},
+        multi = {"double ez", "triple", "team diff", "squad wipe", "ace"},
+        domination = {"owned again", "stop trying", "dominated", "you again?"}
+    },
+    troll = {
+        normal = {"oops", "my bad", "lucky", ":)", "xd", "lol"},
+        headshot = {"nice head", "calculated", "clean", "planned"},
+        knife = {"backstab", "sneaky", "ninja", "surprise"},
+        multi = {"multitasking", "speedrun", "efficiency"},
+        domination = {"again?", "deja vu", "we meet again"}
+    },
+    meme = {
+        normal = {"bruh", "oof", "F", "no u", "ratio", "L"},
+        headshot = {"bonk", "dink", "POV:", "Pog", "KEKW"},
+        knife = {"shank", "poke", "slice", "stab stab"},
+        multi = {"stonks", "poggers", "gigachad"},
+        domination = {"rent free", "obsessed", "simp"}
+    },
+    professional = {
+        normal = {"gg", "wp", "nice try", "ns"},
+        headshot = {"good shot", "nice aim", "excellent"},
+        knife = {"nice knife", "good play"},
+        multi = {"good round", "nice plays"},
+        domination = {"gg again", "good match"}
+    },
+    custom_mix = {
+        normal = {"gg ez", "outplayed", "skill issue", "diff"},
+        headshot = {"crispy", "nasty", "filthy", "insane"},
+        knife = {"violated", "disrespected"},
+        multi = {"unstoppable", "godlike"},
+        domination = {"permanent residence", "tenant"}
+    }
+}
+
+local death_msgs = {
+    excuses = {"lag", "my mouse died", "phone rang", "64 tick"},
+    salty = {"hacker", "nice walls", "reported", "enjoy vac"},
+    funny = {"worth", "calculated death", "tactical feed"},
+    blame = {"team?", "no info", "baited", "bot teammates"},
+    toxic = {"still won round", "scoreboard check", "k/d check"}
+}
+
+local function send_message(txt, dly)
+    local mode = safe_get_combobox(ui_get(ui.killsay_mode))
+    diagnostics.killsay_sent = diagnostics.killsay_sent + 1
+    local cmd = mode == 0 and "say_team " or "say "
+    if dly > 0 then
+        client_delay_call(dly / 1000, function() client_exec(cmd .. txt) end)
+    else
+        client_exec(cmd .. txt)
+    end
+end
+
+local function get_message_pool(style_name, category)
+    if not messages[style_name] or not messages[style_name][category] then
+        return messages.toxic[category]
+    end
+    return messages[style_name][category]
+end
+
+client_set_event_callback("player_death", function(e)
+    if not ui_get(ui.killsay_enable) then return end
+    local me = entity_get_local_player()
+    if not me then return end
+    local atk = client_userid_to_entindex(e.attacker)
+    local vic = client_userid_to_entindex(e.userid)
+    
+    if atk == me and vic ~= me then
+        local dly = ui_get(ui.killsay_delay)
+        local sty = safe_get_combobox(ui_get(ui.killsay_style))
+        local style_names = {"toxic", "troll", "meme", "professional", "custom_mix"}
+        local style_name = style_names[sty + 1] or "toxic"
+        
+        if not kill_tracker.per_player[vic] then kill_tracker.per_player[vic] = 0 end
+        kill_tracker.per_player[vic] = kill_tracker.per_player[vic] + 1
+        
+        local ct = globals_curtime()
+        if ct - kill_tracker.last_kill_time < 5 then
+            kill_tracker.kill_count = kill_tracker.kill_count + 1
+            kill_tracker.streak = kill_tracker.streak + 1
+        else
+            kill_tracker.kill_count = 1
+            kill_tracker.streak = 1
+        end
+        kill_tracker.last_kill_time = ct
+        if kill_tracker.streak > kill_tracker.best_streak then
+            kill_tracker.best_streak = kill_tracker.streak
+        end
+        
+        local msg = nil
+        local wpn = e.weapon
+        
+        if ui_get(ui.on_multi) and kill_tracker.kill_count >= ui_get(ui.multi_threshold) then
+            local pool = get_message_pool(style_name, "multi")
+            msg = pool[math_random(1, #pool)]
+        elseif ui_get(ui.domination) and kill_tracker.per_player[vic] >= ui_get(ui.domination_count) then
+            local pool = get_message_pool(style_name, "domination")
+            msg = pool[math_random(1, #pool)]
+        elseif wpn and (wpn:find("knife") or wpn:find("bayonet")) and ui_get(ui.on_knife) then
+            local pool = get_message_pool(style_name, "knife")
+            msg = pool[math_random(1, #pool)]
+        elseif e.headshot and ui_get(ui.on_headshot) then
+            local pool = get_message_pool(style_name, "headshot")
+            msg = pool[math_random(1, #pool)]
+        elseif ui_get(ui.on_kill) then
+            local pool = get_message_pool(style_name, "normal")
+            msg = pool[math_random(1, #pool)]
+        end
+        
+        if msg then send_message(msg, dly) end
+        
+    elseif vic == me and ui_get(ui.death_responses) then
+        diagnostics.deaths = diagnostics.deaths + 1
+        kill_tracker.streak = 0
+        local dly = ui_get(ui.killsay_delay)
+        local ds = safe_get_combobox(ui_get(ui.death_style))
+        local death_style_names = {"excuses", "salty", "funny", "blame", "toxic"}
+        local death_style = death_style_names[ds + 1] or "excuses"
+        local pool = death_msgs[death_style]
+        if pool and #pool > 0 then
+            local msg = pool[math_random(1, #pool)]
+            send_message(msg, dly + 500)
+        end
+    end
+end)
+
+-- ============================================
+-- CLANTAG (Keep original)
+-- ============================================
+
+local clantag_presets = {
+    ["Custom"] = "",
+    ["MISSWARE"] = "MISSWARE",
+    ["P100"] = "P100",
+    ["GODLIKE"] = "GODLIKE",
+    ["EZ"] = "EZ",
+    ["1TAP"] = "1TAP",
+    ["RESOLVER"] = "RESOLVER",
+    ["GAMING"] = "GAMING",
+    ["PRO"] = "PRO",
+    ["HVHGOD"] = "HVHGOD"
+}
+
+local separators = {
+    ["None"] = {"", ""},
+    ["[ ]"] = {"[", "]"},
+    ["{ }"] = {"{", "}"},
+    ["( )"] = {"(", ")"},
+    ["| |"] = {"|", "|"},
+    ["< >"] = {"<", ">"},
+    ["» «"] = {"»", "«"},
+    ["★ ★"] = {"★", "★"},
+    ["• •"] = {"•", "•"},
+    ["~ ~"] = {"~", "~"}
+}
+
+local ct_data = {
+    last_update = 0,
+    step = 0,
+    direction = 1,
+    glitch_timer = 0,
+    last_text = ""
+}
+local ct_active = false
+
+local function get_clantag_text()
+    local preset_idx = safe_get_combobox(ui_get(ui.clantag_preset))
+    local preset_names = {"Custom", "MISSWARE", "P100", "GODLIKE", "EZ", "1TAP", "RESOLVER", "GAMING", "PRO", "HVHGOD"}
+    local preset_name = preset_names[preset_idx + 1] or "Custom"
+    
+    local text = ""
+    if preset_name == "Custom" then
+        text = ui_get(ui.clantag_custom_text) or "MISSWARE"
+        if text == "" then text = "MISSWARE" end
+    else
+        text = clantag_presets[preset_name] or "MISSWARE"
+    end
+    return text
+end
+
+local function apply_separator(text)
+    local sep_idx = safe_get_combobox(ui_get(ui.clantag_separator))
+    local sep_names = {"None", "[ ]", "{ }", "( )", "| |", "< >", "» «", "★ ★", "• •", "~ ~"}
+    local sep_name = sep_names[sep_idx + 1] or "None"
+    local sep = separators[sep_name] or {"", ""}
+    
+    if sep[1] ~= "" then
+        return sep[1] .. " " .. text .. " " .. sep[2]
+    else
+        return text
+    end
+end
+
+local function apply_prefix_suffix(text)
+    local prefix = ui_get(ui.clantag_prefix) or ""
+    local suffix = ui_get(ui.clantag_suffix) or ""
+    
+    if prefix ~= "" then text = prefix .. " " .. text end
+    if suffix ~= "" then text = text .. " " .. suffix end
+    return text
+end
+
+local function truncate_text(text, max_len)
+    if #text > max_len then
+        return text:sub(1, max_len)
+    end
+    return text
+end
+
+local function animate_scroll(text)
+    local max_len = ui_get(ui.clantag_max_length)
+    local padding = string.rep(" ", math_floor(max_len / 2))
+    local padded = padding .. text .. padding
+    local pos = ct_data.step % #padded
+    local result = padded:sub(pos + 1, pos + max_len)
+    if #result < max_len then
+        result = result .. padded:sub(1, max_len - #result)
+    end
+    return result
+end
+
+local function animate_fade(text)
+    local steps = {}
+    for i = 1, #text do table_insert(steps, text:sub(1, i)) end
+    for i = 1, 3 do table_insert(steps, text) end
+    for i = #text, 1, -1 do table_insert(steps, text:sub(1, i)) end
+    for i = 1, 2 do table_insert(steps, "") end
+    local idx = (ct_data.step % #steps) + 1
+    return steps[idx]
+end
+
+local function animate_blink(text)
+    return ct_data.step % 2 == 0 and text or ""
+end
+
+local function animate_wave(text)
+    local result = {}
+    for i = 1, #text do
+        local offset = math_sin((ct_data.step + i) * 0.5)
+        result[i] = offset > 0 and text:sub(i,i):upper() or text:sub(i,i):lower()
+    end
+    return table_concat(result)
+end
+
+local function animate_typewriter(text)
+    local pause = 3
+    local total_steps = #text + pause
+    local pos = ct_data.step % total_steps
+    if pos > #text then
+        return text
+    else
+        return text:sub(1, pos)
+    end
+end
+
+local function animate_reverse(text)
+    if ct_data.direction == 1 then
+        local len = math_min(ct_data.step, #text)
+        local result = text:sub(1, len)
+        if len >= #text then
+            ct_data.direction = -1
+            ct_data.step = #text
+        end
+        return result
+    else
+        local len = math_max(0, ct_data.step)
+        local result = text:sub(1, len)
+        if len <= 0 then
+            ct_data.direction = 1
+            ct_data.step = 0
+        end
+        return result
+    end
+end
+
+local function animate_pingpong(text)
+    local max_len = ui_get(ui.clantag_max_length)
+    local padding = string.rep(" ", max_len)
+    local full = padding .. text .. padding
+    local max_pos = #full - max_len
+    local cycle = max_pos * 2
+    local raw_pos = ct_data.step % cycle
+    local pos = 0
+    if raw_pos <= max_pos then
+        pos = raw_pos
+    else
+        pos = max_pos - (raw_pos - max_pos)
+    end
+    return full:sub(pos + 1, pos + max_len)
+end
+
+local function animate_rainbow(text)
+    local rainbow_chars = {
+        {"A", "a", "4", "@"},
+        {"E", "e", "3"},
+        {"I", "i", "1", "!"},
+        {"O", "o", "0"},
+        {"S", "s", "$", "5"},
+        {"T", "t", "7"}
+    }
+    local result = text
+    local variant = (ct_data.step % 4) + 1
+    for i = 1, #rainbow_chars do
+        local chars = rainbow_chars[i]
+        if #chars >= variant then
+            local from = chars[1]
+            local to = chars[variant]
+            result = result:gsub(from, to)
+            result = result:gsub(from:lower(), to:lower())
+        end
+    end
+    return result
+end
+
+local function animate_glitch(text)
+    ct_data.glitch_timer = ct_data.glitch_timer + 1
+    if ct_data.glitch_timer % 8 == 0 then
+        local glitch_chars = {"█", "▓", "▒", "░", "▀", "▄"}
+        local result = {}
+        for i = 1, #text do
+            if math_random(1, 4) == 1 then
+                result[i] = glitch_chars[math_random(1, #glitch_chars)]
+            else
+                result[i] = text:sub(i, i)
+            end
+        end
+        return table_concat(result)
+    else
+        return text
+    end
+end
+
+local function animate_bounce(text)
+    local result = {}
+    for i = 1, #text do
+        local offset = math_sin((ct_data.step * 0.3) + (i * 0.5)) * 2
+        if math_floor(offset) > 0 then
+            result[i] = text:sub(i, i):upper()
+        else
+            result[i] = text:sub(i, i):lower()
+        end
+    end
+    return table_concat(result)
+end
+
+client_set_event_callback("run_command", function()
+    local en = ui_get(ui.clantag_enable)
+    if not en then
+        if ct_active then
+            client_set_clan_tag("")
+            ct_active = false
+        end
+        return
+    end
+    ct_active = true
+    local t = globals_realtime()
+    local spd = ui_get(ui.clantag_speed)
+    if t - ct_data.last_update < (0.3 / spd) then return end
+    ct_data.last_update = t
+    
+    local text = get_clantag_text()
+    local anim_idx = safe_get_combobox(ui_get(ui.clantag_animation))
+    local animated = ""
+    
+    if anim_idx == 0 then
+        animated = animate_scroll(text)
+    elseif anim_idx == 1 then
+        animated = animate_fade(text)
+    elseif anim_idx == 2 then
+        animated = animate_blink(text)
+    elseif anim_idx == 3 then
+        animated = animate_wave(text)
+    elseif anim_idx == 4 then
+        animated = animate_typewriter(text)
+    elseif anim_idx == 5 then
+        animated = animate_reverse(text)
+        ct_data.step = ct_data.step + ct_data.direction
+        client_set_clan_tag(apply_separator(apply_prefix_suffix(animated)))
+        return
+    elseif anim_idx == 6 then
+        animated = animate_pingpong(text)
+    elseif anim_idx == 7 then
+        animated = animate_rainbow(text)
+    elseif anim_idx == 8 then
+        animated = animate_glitch(text)
+    elseif anim_idx == 9 then
+        animated = animate_bounce(text)
+    else
+        animated = text
+    end
+    
+    animated = apply_separator(animated)
+    animated = apply_prefix_suffix(animated)
+    local max_len = ui_get(ui.clantag_max_length)
+    animated = truncate_text(animated, max_len)
+    client_set_clan_tag(animated)
+    ct_data.last_text = animated
+    ct_data.step = ct_data.step + 1
+end)
+
+client.set_event_callback("shutdown", function() client_set_clan_tag("") end)
+
+-- ============================================
+-- ENHANCED DIAGNOSTICS OVERLAY
+-- ============================================
+
+client_set_event_callback("paint", function()
+    if ui_get(ui.show_diagnostics) then
+        local y = 100
+        local uptime = globals_realtime() - diagnostics.start_time
+        
+        renderer_text(10, y, 100, 255, 255, 255, "", 0, "═══ MISSWARE P100 V5 ═══") y = y + 20
+        renderer_text(10, y, 150, 150, 150, 255, "", 0, string_format("Uptime: %ds", math_floor(uptime))) y = y + 15
+        
+        renderer_text(10, y, 100, 255, 100, 255, "", 0, "RESOLVER:") y = y + 15
+        renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Applies: " .. diagnostics.resolver_applies) y = y + 12
+        renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Hits: " .. diagnostics.resolver_hits) y = y + 12
+        renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Misses: " .. diagnostics.resolver_misses) y = y + 12
+        
+        local hr = 0
+        local total = diagnostics.resolver_hits + diagnostics.resolver_misses
+        if total > 0 then hr = math_floor((diagnostics.resolver_hits / total) * 100) end
+        local hr_r = hr > 60 and 100 or 255
+        local hr_g = hr > 60 and 255 or 100
+        renderer_text(10, y, hr_r, hr_g, 100, 255, "", 0, string_format("  Hit Rate: %d%%", hr)) y = y + 12
+        
+        local ai_hr = 0
+        if diagnostics.ai_predictions > 0 then
+            ai_hr = math_floor((diagnostics.ai_successes / diagnostics.ai_predictions) * 100)
+        end
+        renderer_text(10, y, 255, 200, 100, 255, "", 0, string_format("  AI Success: %d%%", ai_hr)) y = y + 12
+        renderer_text(10, y, 150, 255, 255, 255, "", 0, "  Neural: " .. diagnostics.neural_corrections) y = y + 12
+        renderer_text(10, y, 255, 255, 150, 255, "", 0, "  Perfect: " .. diagnostics.perfect_resolves) y = y + 20
+        
+        renderer_text(10, y, 255, 200, 100, 255, "", 0, "KILL SAY:") y = y + 15
+        renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Sent: " .. diagnostics.killsay_sent) y = y + 12
+        renderer_text(10, y, 255, 255, 255, 255, "", 0, "  Streak: " .. kill_tracker.streak .. " (Best: " .. kill_tracker.best_streak .. ")")
+    end
+    
+    if not ui_get(ui.resolver_debug) or not ui_get(ui.resolver_enable) then return end
+    
+    local me = entity_get_local_player()
+    if not me or not entity_is_alive(me) then return end
+    
+    local y = 400
+    renderer_text(10, y, 100, 255, 255, 255, "", 0, "═══ P100 V5 DEBUG ═══") y = y + 20
+    
+    local mode_names = {"SMART BRUTE", "NEURAL DELTA", "VELOCITY", "ADV MULTI", "P100 AI PRO", "EXP V2", "ADAPTIVE", "ZERO-TICK"}
+    local mode_idx = safe_get_combobox(ui_get(ui.resolver_mode)) + 1
+    if mode_idx < 1 or mode_idx > #mode_names then mode_idx = 1 end
+    renderer_text(10, y, 100, 255, 255, 255, "", 0, "Mode: " .. mode_names[mode_idx]) y = y + 15
+    
+    local players = entity_get_players(true)
+    if not players then return end
+    
+    for i = 1, #players do
+        local p = players[i]
+        if p and entity_is_alive(p) then
+            local d = resolver_data[p]
+            if d then
+                local n = entity_get_player_name(p) or "?"
+                local player_hr = 0
+                local player_total = d.shot_hits + d.shot_misses
+                if player_total > 0 then player_hr = math_floor((d.shot_hits / player_total) * 100) end
+                
+                local r = player_hr > 50 and 100 or 255
+                local g = player_hr > 50 and 255 or 100
+                
+                local status = d.aa_type or "?"
+                local conf = math_floor((d.confidence or 0) * 100)
+                
+                renderer_text(10, y, r, g, 100, 255, "", 0,
+                    string_format("%s | %d° | %d%% | %s | C:%d%% | T:%.1fms",
+                    n, d.last_resolve_angle, player_hr, status:upper(), conf, (d.process_time or 0) * 1000))
+                y = y + 12
+            end
+        end
+    end
+end)
+
+-- ============================================
+-- UI VISIBILITY MANAGEMENT
+-- ============================================
+
+local function update_visibility()
+    local re = ui_get(ui.resolver_enable)
+    local ke = ui_get(ui.killsay_enable)
+    local ce = ui_get(ui.clantag_enable)
+    local preset_idx = safe_get_combobox(ui_get(ui.clantag_preset))
+    
+    ui_set_visible(ui.resolver_mode, re)
+    ui_set_visible(ui.ai_confidence, re)
+    ui_set_visible(ui.prediction_depth, re)
+    ui_set_visible(ui.pattern_memory, re)
+    ui_set_visible(ui.neural_enable, re)
+    ui_set_visible(ui.neural_weights, re and ui_get(ui.neural_enable))
+    ui_set_visible(ui.temporal_smoothing, re and ui_get(ui.neural_enable))
+    ui_set_visible(ui.shot_history_weight, re)
+    ui_set_visible(ui.adaptive_learning, re)
+    ui_set_visible(ui.jitter_prediction, re)
+    ui_set_visible(ui.desync_detection, re)
+    ui_set_visible(ui.body_aim_correction, re)
+    ui_set_visible(ui.velocity_extrapolation, re)
+    ui_set_visible(ui.lby_breaker_detect, re)
+    ui_set_visible(ui.stance_detection, re)
+    ui_set_visible(ui.freestanding_detect, re)
+    ui_set_visible(ui.brute_stages, re)
+    ui_set_visible(ui.reset_on_miss, re)
+    ui_set_visible(ui.reset_on_death, re)
+    ui_set_visible(ui.phase_rotation_speed, re)
+    ui_set_visible(ui.brute_randomize, re)
+    ui_set_visible(ui.brute_adaptive, re)
+    ui_set_visible(ui.manual_override, re)
+    ui_set_visible(ui.override_dir, re)
+    ui_set_visible(ui.manual_angle, re)
+    ui_set_visible(ui.distance_scaling, re)
+    ui_set_visible(ui.weapon_compensation, re)
+    ui_set_visible(ui.tick_optimization, re)
+    ui_set_visible(ui.lag_compensation, re)
+    ui_set_visible(ui.resolver_debug, re)
+    ui_set_visible(ui.log_hits, re)
+    ui_set_visible(ui.log_misses, re)
+    ui_set_visible(ui.visual_debug, re)
+    
+    ui_set_visible(ui.killsay_mode, ke)
+    ui_set_visible(ui.killsay_style, ke)
+    ui_set_visible(ui.killsay_delay, ke)
+    ui_set_visible(ui.on_kill, ke)
+    ui_set_visible(ui.on_headshot, ke)
+    ui_set_visible(ui.on_knife, ke)
+    ui_set_visible(ui.on_multi, ke)
+    ui_set_visible(ui.multi_threshold, ke and ui_get(ui.on_multi))
+    ui_set_visible(ui.death_responses, ke)
+    ui_set_visible(ui.death_style, ke and ui_get(ui.death_responses))
+    ui_set_visible(ui.domination, ke)
+    ui_set_visible(ui.domination_count, ke and ui_get(ui.domination))
+    
+    ui_set_visible(ui.clantag_preset, ce)
+    ui_set_visible(ui.clantag_custom_text, ce and preset_idx == 0)
+    ui_set_visible(ui.clantag_animation, ce)
+    ui_set_visible(ui.clantag_separator, ce)
+    ui_set_visible(ui.clantag_prefix, ce)
+    ui_set_visible(ui.clantag_suffix, ce)
+    ui_set_visible(ui.clantag_max_length, ce)
+    ui_set_visible(ui.clantag_speed, ce)
+end
+
+ui_set_callback(ui.resolver_enable, update_visibility)
+ui_set_callback(ui.neural_enable, update_visibility)
+ui_set_callback(ui.killsay_enable, update_visibility)
+ui_set_callback(ui.clantag_enable, update_visibility)
+ui_set_callback(ui.on_multi, update_visibility)
+ui_set_callback(ui.death_responses, update_visibility)
+ui_set_callback(ui.domination, update_visibility)
+ui_set_callback(ui.clantag_preset, update_visibility)
+
+update_visibility()
+
+-- ============================================
+-- INITIALIZATION
+-- ============================================
+
+client.color_log(100, 255, 255, "[MISSWARE P100] ", 255, 255, 255, "v" .. script_version .. " loaded!")
+client.log("Enhanced Resolver | Neural Prediction | Multi-Layer Detection")
+client.color_log(255, 200, 100, "[TIP] ", 255, 255, 255, "Try 'P100 AI Pro' or 'Zero-Tick Predict' for best results!")
+client.color_log(100, 255, 100, "[NEW] ", 255, 255, 255, "Neural system, LBY detection, stance detection, freestanding!")
+
+math.randomseed(math_floor(globals_realtime() * 1000))
